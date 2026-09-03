@@ -34,12 +34,6 @@ func handlerRegister(s *state, cmd command) error {
 		return errors.New("command only accepts single-name inputs: register <name>")
 	}
 
-	/*
-		if _, err := s.db.GetUser(ctx, cmd.args[0]); err == nil {
-			return errors.New("Error: user already in database")
-		}
-	*/
-
 	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),

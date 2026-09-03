@@ -28,7 +28,7 @@ func main() {
 		fmt.Printf("Error: %s", err)
 		os.Exit(1)
 	}
-	dbQueries := database.New((db))
+	dbQueries := database.New(db)
 
 	programState := &state{
 		db:  dbQueries,
@@ -40,22 +40,17 @@ func main() {
 	}
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerReset)
 
 	if len(os.Args) < 2 {
 		fmt.Println("Error: command requires more than one argument.")
 		os.Exit(1)
 	}
 
-	command := command{
-		name: os.Args[1],
-		args: os.Args[2:],
-	}
-
-	err = cmds.run(programState, command)
+	err = cmds.run(programState, command{name: os.Args[1], args: os.Args[2:]})
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	os.Exit(0)
 }
