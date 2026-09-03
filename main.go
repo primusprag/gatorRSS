@@ -1,12 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"gatorRSS/internal/config"
+	"gatorRSS/internal/database"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type state struct {
+	db  *database.Queries
 	cfg *config.Config
 }
 
@@ -17,7 +22,16 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	db, err := sql.Open("postgres", userCfg.DbUrl)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		os.Exit(1)
+	}
+	dbQueries := database.New((db))
+
 	programState := &state{
+		db:  dbQueries,
 		cfg: &userCfg,
 	}
 
@@ -25,6 +39,7 @@ func main() {
 		cmds: map[string]func(*state, command) error{},
 	}
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	if len(os.Args) < 2 {
 		fmt.Println("Error: command requires more than one argument.")
@@ -38,7 +53,7 @@ func main() {
 
 	err = cmds.run(programState, command)
 	if err != nil {
-		fmt.Printf("Error executing: %s\n", err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
