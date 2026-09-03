@@ -53,3 +53,20 @@ func handlerRegister(s *state, cmd command) error {
 
 	return nil
 }
+
+func handlerGetUsers(s *state, _ command) error {
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("Error retreving users: %w", err)
+	}
+
+	for _, name := range users {
+		if name == s.cfg.CurrentUserName {
+			fmt.Printf("* %s (current)\n", name)
+		} else {
+			fmt.Printf("* %s\n", name)
+		}
+	}
+
+	return nil
+}

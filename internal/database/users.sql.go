@@ -68,3 +68,31 @@ func (q *Queries) GetUser(ctx context.Context, name string) (string, error) {
 	err := row.Scan(&name_2)
 	return name_2, err
 }
+
+const getUsers = `-- name: GetUsers :many
+SELECT name
+FROM users
+`
+
+func (q *Queries) GetUsers(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		items = append(items, name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
