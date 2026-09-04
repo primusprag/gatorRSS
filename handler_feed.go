@@ -16,7 +16,7 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	ctx := context.Background()
 
-	currentUserID, err := s.db.GetUserID(ctx, s.cfg.CurrentUserName)
+	user, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
 	if err != nil {
 		return fmt.Errorf("Error retrieving userID: %w", err)
 	}
@@ -27,7 +27,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UpdatedAt: time.Now(),
 		Name:      cmd.args[0],
 		Url:       cmd.args[1],
-		UserID:    currentUserID,
+		UserID:    user.ID,
 	})
 	if err != nil {
 		return fmt.Errorf("Error adding feed: %w", err)

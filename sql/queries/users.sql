@@ -9,12 +9,7 @@ VALUES (
 RETURNING *;
 
 -- name: GetUser :one
-SELECT name 
-FROM users
-WHERE name = $1;
-
--- name: GetUserID :one
-SELECT id
+SELECT * 
 FROM users
 WHERE name = $1;
 

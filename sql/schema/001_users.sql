@@ -1,4 +1,3 @@
-
 -- +goose Up
 CREATE TABLE users (
     id UUID PRIMARY KEY,
@@ -13,13 +12,13 @@ CREATE TABLE feeds (
     updated_at TIMESTAMP NOT NULL,
     name TEXT NOT NULL,
     url TEXT UNIQUE NOT NULL,
-    user_id UUID NOT NULL,
-    CONSTRAINT fk_user_id
-        FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- +goose Down
+ALTER TABLE feeds
+DROP COLUMN user_id;
+
 DROP TABLE users;
+
 DROP TABLE feeds;
