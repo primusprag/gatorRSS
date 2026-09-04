@@ -1,0 +1,5 @@
+sudo service postgresql start 
+
+psql "postgres://postgres:postgres@localhost:5432/gator"
+
+goose postgres "postgres://postgres:postgres@localhost:5432/gator" up
