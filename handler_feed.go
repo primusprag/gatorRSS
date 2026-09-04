@@ -11,7 +11,7 @@ import (
 
 func handlerAddFeed(s *state, cmd command) error {
 	if len(cmd.args) != 2 {
-		return fmt.Errorf("command usage: addFeed <'name'> <'url'>")
+		return fmt.Errorf("Command usage: addFeed <'name'> <'url'>")
 	}
 
 	ctx := context.Background()
@@ -33,7 +33,18 @@ func handlerAddFeed(s *state, cmd command) error {
 		return fmt.Errorf("Error adding feed: %w", err)
 	}
 
-	fmt.Printf(
+	err = handlerFollow(s, command{
+		name: "follow",
+		args: []string{feed.Url},
+	})
+
+	fmt.Printf(`Added feed:
+	ID: %s
+	Created At: %v
+	Updated at: %v
+	Name: %s
+	URL: %s
+	User ID: %v`,
 		feed.ID.String(),
 		feed.CreatedAt,
 		feed.UpdatedAt,
@@ -57,9 +68,7 @@ func handlerFeeds(s *state, _ command) error {
 		if err != nil {
 			return fmt.Errorf("Error retreving username: %w", err)
 		}
-		fmt.Printf("Name: %s\n", feed.Name)
-		fmt.Printf("URL: %s\n", feed.Url)
-		fmt.Printf("User: %s\n", feedUser)
+		fmt.Printf("Name: %s URL: %s User: %s\n", feed.Name, feed.Url, feedUser)
 	}
 
 	return nil

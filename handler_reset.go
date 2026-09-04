@@ -10,6 +10,6 @@ func handlerReset(s *state, _ command) error {
 	if err != nil {
 		return fmt.Errorf("Error reseting table: %w", err)
 	}
-	fmt.Println("users reset")
+	fmt.Println("Users reset")
 	return nil
 }

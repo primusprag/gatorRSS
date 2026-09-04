@@ -12,26 +12,26 @@ import (
 
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.args) != 1 {
-		return errors.New("command: login <username>")
+		return errors.New("Command usage: login <username>")
 	}
 
 	user, err := s.db.GetUser(context.Background(), cmd.args[0])
 	if err != nil {
-		return errors.New("unable to login, user not in database.")
+		return errors.New("Error: Unable to login, user not in database.")
 	}
 
 	err = s.cfg.SetUser(user.Name)
 	if err != nil {
-		return fmt.Errorf("couldn't set user: %w", err)
+		return fmt.Errorf("Error: Couldn't set user: %w", err)
 	}
 
-	fmt.Println("username has been set")
+	fmt.Println("Username has been set")
 	return nil
 }
 
 func handlerRegister(s *state, cmd command) error {
 	if len(cmd.args) != 1 {
-		return errors.New("command only accepts single-name inputs: register <name>")
+		return errors.New("Command only accepts single-name inputs: register <name>")
 	}
 
 	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
@@ -41,15 +41,15 @@ func handlerRegister(s *state, cmd command) error {
 		Name:      cmd.args[0],
 	})
 	if err != nil {
-		return fmt.Errorf("couldn't create user: %w", err)
+		return fmt.Errorf("Couldn't create user: %w", err)
 	}
-	fmt.Printf("user <%s> was created\n", user.Name)
+	fmt.Printf("User %s was created\n", user.Name)
 
 	err = s.cfg.SetUser(user.Name)
 	if err != nil {
-		return fmt.Errorf("couldn't set current user: %w", err)
+		return fmt.Errorf("Couldn't set current user: %w", err)
 	}
-	fmt.Printf("user <%s> was set\n", s.cfg.CurrentUserName)
+	fmt.Printf("User %s was set\n", s.cfg.CurrentUserName)
 
 	return nil
 }
