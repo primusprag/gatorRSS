@@ -43,3 +43,24 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	return nil
 }
+
+func handlerFeeds(s *state, _ command) error {
+	ctx := context.Background()
+
+	feeds, err := s.db.ListFeeds(ctx)
+	if err != nil {
+		return fmt.Errorf("Error retreving feeds: %w", err)
+	}
+
+	for _, feed := range feeds {
+		feedUser, err := s.db.GetNameByID(ctx, feed.UserID)
+		if err != nil {
+			return fmt.Errorf("Error retreving username: %w", err)
+		}
+		fmt.Printf("Name: %s\n", feed.Name)
+		fmt.Printf("URL: %s\n", feed.Url)
+		fmt.Printf("User: %s\n", feedUser)
+	}
+
+	return nil
+}
