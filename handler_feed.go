@@ -34,12 +34,13 @@ func handlerAddFeed(s *state, cmd command, user database.User) error {
 	}, user)
 
 	fmt.Printf(`Added feed:
-	ID: %s
-	Created At: %v
-	Updated at: %v
-	Name: %s
-	URL: %s
-	User ID: %v`,
+ID: %s
+Created At: %v
+Updated at: %v
+Name: %s
+URL: %s
+User ID: %v
+`,
 		feed.ID.String(),
 		feed.CreatedAt,
 		feed.UpdatedAt,
