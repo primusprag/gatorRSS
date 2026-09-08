@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const configFileName = "/.gatorconfig.json"
@@ -21,7 +22,19 @@ func Read() (Config, error) {
 
 	file, err := os.Open(configPath)
 	if err != nil {
-		return Config{}, fmt.Errorf("Error opening file path: %w", err)
+		if strings.Contains(err.Error(), "no such file or directory") {
+			cfg := Config{
+				DbUrl:           "postgres://postgres:postgres@localhost:5432/gator",
+				CurrentUserName: "",
+			}
+
+			err = write(cfg)
+
+			file, err = os.Open(configPath)
+
+		} else {
+			return Config{}, fmt.Errorf("Error opening file path: %w", err)
+		}
 	}
 	defer file.Close()
 

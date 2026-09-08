@@ -14,6 +14,11 @@ go install gatorRSS github.com/d4l4-33/gatorRSS
 ```
 
 
+#### Set config:
+
+A config file is automatically set at home directory called ".gatorconfig.json" at first startup.
+
+
 #### Commands:
 
 Users:
