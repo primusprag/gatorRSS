@@ -11,11 +11,11 @@ import (
 
 func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.args) != 1 {
-		return fmt.Errorf("Command usage: follow <url>")
+		return fmt.Errorf("Command usage: follow <name>")
 	}
 	ctx := context.Background()
 
-	feed, err := s.db.GetFeedByURL(ctx, cmd.args[0])
+	feed, err := s.db.GetFeedByName(ctx, cmd.args[0])
 	if err != nil {
 		return fmt.Errorf("Error retrieving feed: %w", err)
 	}

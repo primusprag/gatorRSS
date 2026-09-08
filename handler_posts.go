@@ -17,7 +17,7 @@ func handlerBrowse(s *state, cmd command, user database.User) error {
 		}
 
 	} else {
-		limit = 2
+		limit = 5
 	}
 
 	posts, err := s.db.GetPostsForUser(context.Background(), database.GetPostsForUserParams{
