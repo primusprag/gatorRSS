@@ -69,3 +69,89 @@ func handlerFeeds(s *state, _ command) error {
 
 	return nil
 }
+
+func handlerArchiveFeed(s *state, cmd command) error {
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Command usage: deletefeed <feed_name>")
+	}
+
+	ctx := context.Background()
+
+	feed, err := s.db.GetFeedByName(ctx, cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("Error retrieving feed: %w", err)
+	}
+
+	archFeed, err := s.db.ArchiveFeed(ctx, database.ArchiveFeedParams{
+		ID:        feed.ID,
+		CreatedAt: feed.CreatedAt,
+		UpdatedAt: time.Now(),
+		Name:      feed.Name,
+		Url:       feed.Url,
+		UserID:    feed.UserID,
+	})
+	if err != nil {
+		return fmt.Errorf("Error archiving feed: %w", err)
+	}
+
+	_, err = s.db.DeleteFeed(ctx, archFeed.ID)
+
+	fmt.Printf("%s archived\n", archFeed.Name)
+	return nil
+}
+
+func handlerArchiveFeeds(s *state, cmd command) error {
+	for _, arg := range cmd.args {
+		err := handlerArchiveFeed(s, command{
+			name: "deletefeed",
+			args: []string{arg},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func handlerRestoreFeed(s *state, cmd command) error {
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Command usage: deletefeed <feed_name>")
+	}
+
+	ctx := context.Background()
+
+	feed, err := s.db.GetArchivedFeedByName(ctx, cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("Error retrieving feed: %w", err)
+	}
+
+	resFeed, err := s.db.AddFeed(ctx, database.AddFeedParams{
+		ID:        feed.ID,
+		CreatedAt: feed.CreatedAt,
+		UpdatedAt: time.Now(),
+		Name:      feed.Name,
+		Url:       feed.Url,
+		UserID:    feed.UserID,
+	})
+	if err != nil {
+		return fmt.Errorf("Error archiving feed: %w", err)
+	}
+
+	_, err = s.db.DeleteArchivedFeed(ctx, resFeed.ID)
+
+	fmt.Printf("%s restored\n", resFeed.Name)
+	return nil
+}
+
+func handlerRestoreFeeds(s *state, cmd command) error {
+	for _, arg := range cmd.args {
+		err := handlerRestoreFeed(s, command{
+			name: "restorefeed",
+			args: []string{arg},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

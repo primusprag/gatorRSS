@@ -10,6 +10,9 @@ CREATE TABLE feed_follows (
 
 -- +goose Down
 ALTER TABLE feed_follows
-DROP COLUMN user_id, feed_id;
+DROP COLUMN user_id;
+
+ALTER TABLE feed_follows
+DROP COLUMN feed_id;
 
 DROP TABLE feed_follows;

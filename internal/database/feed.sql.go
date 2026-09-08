@@ -57,6 +57,49 @@ func (q *Queries) AddFeed(ctx context.Context, arg AddFeedParams) (Feed, error) 
 	return i, err
 }
 
+const archiveFeed = `-- name: ArchiveFeed :one
+INSERT INTO feedsArchive (id, created_at, updated_at, name, url, user_id)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6
+)
+RETURNING id, created_at, updated_at, name, url, user_id
+`
+
+type ArchiveFeedParams struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Name      string
+	Url       string
+	UserID    uuid.UUID
+}
+
+func (q *Queries) ArchiveFeed(ctx context.Context, arg ArchiveFeedParams) (Feedsarchive, error) {
+	row := q.db.QueryRowContext(ctx, archiveFeed,
+		arg.ID,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.Name,
+		arg.Url,
+		arg.UserID,
+	)
+	var i Feedsarchive
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const createFeedFollow = `-- name: CreateFeedFollow :many
 WITH inserted_feed_follows AS (
     INSERT INTO feed_follows (id, created_at, updated_at, user_id, feed_id)
@@ -133,6 +176,47 @@ func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowPara
 	return items, nil
 }
 
+const deleteArchivedFeed = `-- name: DeleteArchivedFeed :one
+DELETE FROM feedsArchive
+WHERE id = $1
+RETURNING id, created_at, updated_at, name, url, user_id
+`
+
+func (q *Queries) DeleteArchivedFeed(ctx context.Context, id uuid.UUID) (Feedsarchive, error) {
+	row := q.db.QueryRowContext(ctx, deleteArchivedFeed, id)
+	var i Feedsarchive
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const deleteFeed = `-- name: DeleteFeed :one
+DELETE FROM feeds
+WHERE id = $1
+RETURNING id, created_at, updated_at, name, url, user_id, last_fetched_at
+`
+
+func (q *Queries) DeleteFeed(ctx context.Context, id uuid.UUID) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, deleteFeed, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+		&i.LastFetchedAt,
+	)
+	return i, err
+}
+
 const deleteFeedFollow = `-- name: DeleteFeedFollow :exec
 DELETE FROM feed_follows
 WHERE user_id = $1 AND feed_id = $2
@@ -146,6 +230,47 @@ type DeleteFeedFollowParams struct {
 func (q *Queries) DeleteFeedFollow(ctx context.Context, arg DeleteFeedFollowParams) error {
 	_, err := q.db.ExecContext(ctx, deleteFeedFollow, arg.UserID, arg.FeedID)
 	return err
+}
+
+const getArchivedFeedByName = `-- name: GetArchivedFeedByName :one
+SELECT id, created_at, updated_at, name, url, user_id
+FROM feedsArchive
+WHERE name = $1
+`
+
+func (q *Queries) GetArchivedFeedByName(ctx context.Context, name string) (Feedsarchive, error) {
+	row := q.db.QueryRowContext(ctx, getArchivedFeedByName, name)
+	var i Feedsarchive
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getFeedByName = `-- name: GetFeedByName :one
+SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
+FROM feeds
+WHERE name = $1
+`
+
+func (q *Queries) GetFeedByName(ctx context.Context, name string) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, getFeedByName, name)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+		&i.LastFetchedAt,
+	)
+	return i, err
 }
 
 const getFeedByURL = `-- name: GetFeedByURL :one

@@ -58,12 +58,12 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 
 func handlerUnfollow(s *state, cmd command, user database.User) error {
 	if len(cmd.args) != 1 {
-		return fmt.Errorf("Command usage: unfollow <feed_URL>")
+		return fmt.Errorf("Command usage: unfollow <feed_name>")
 	}
 
 	ctx := context.Background()
 
-	feed, err := s.db.GetFeedByURL(ctx, cmd.args[0])
+	feed, err := s.db.GetFeedByName(ctx, cmd.args[0])
 	if err != nil {
 		return fmt.Errorf("Error retrieving feed: %w", err)
 	}
@@ -75,6 +75,8 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	if err != nil {
 		return fmt.Errorf("Error deleting feed: %w", err)
 	}
+
+	fmt.Printf("Unfollowed: %s - %s\n", feed.Name, feed.Url)
 
 	return nil
 }

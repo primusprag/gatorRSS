@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"gatorRSS/internal/database"
+	"strings"
 	"time"
-)
 
-const wagsURL = "https://www.wagslane.dev/index.xml"
+	"github.com/google/uuid"
+)
 
 func handlerAgg(s *state, cmd command) error {
 	if len(cmd.args) != 1 {
@@ -18,7 +19,7 @@ func handlerAgg(s *state, cmd command) error {
 	//Time Between Requests:
 	TBR, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
-		return fmt.Errorf("Errro parsing duration: %w", err)
+		return fmt.Errorf("Error parsing duration: %w", err)
 	}
 
 	fmt.Printf("Collecting feeds every %v:\n\n", TBR)
@@ -32,13 +33,13 @@ func handlerAgg(s *state, cmd command) error {
 func scrapeFeeds(s *state) error {
 	ctx := context.Background()
 
-	nextFetch, err := s.db.GetNextFeedToFetch(ctx)
+	newFetch, err := s.db.GetNextFeedToFetch(ctx)
 	if err != nil {
 		return fmt.Errorf("Error retrieving next feed: %w", err)
 	}
 
 	err = s.db.MarkFeedFetched(ctx, database.MarkFeedFetchedParams{
-		ID: nextFetch.ID,
+		ID: newFetch.ID,
 		LastFetchedAt: sql.NullTime{
 			Time:  time.Now(),
 			Valid: true,
@@ -48,15 +49,65 @@ func scrapeFeeds(s *state) error {
 		return fmt.Errorf("Error making feed: %w", err)
 	}
 
-	feed, err := fetchFeed(ctx, nextFetch.Url)
+	feed, err := fetchFeed(ctx, newFetch.Url)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%s:\n", feed.Channel.Title)
+	fmt.Printf("%s - %s\n", feed.Channel.Title, feed.Channel.Description)
+
 	for _, item := range feed.Channel.Item {
-		fmt.Println(item.Title)
+
+		var publishedAt sql.NullTime
+		pubDate, err := parseTime(item.PubDate)
+		publishedAt.Time = pubDate
+		if err != nil {
+			publishedAt.Valid = false
+		} else {
+			publishedAt.Valid = true
+		}
+
+		post, err := s.db.CreatePost(ctx, database.CreatePostParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title:     item.Title,
+			Url:       item.Link,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  true,
+			},
+			PublishedAt: publishedAt,
+			FeedID: uuid.NullUUID{
+				UUID:  newFetch.ID,
+				Valid: true,
+			},
+		})
+
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			}
+			return fmt.Errorf("Error creating post: %w\n", err)
+		} else {
+			fmt.Printf("- %s\n", post.Title)
+		}
+	}
+	fmt.Println("")
+	return nil
+}
+
+func parseTime(pubTime string) (time.Time, error) {
+	var layout = time.RFC1123
+	if strings.HasSuffix(pubTime, "00") {
+		layout = time.RFC1123Z
 	}
 
-	return nil
+	parsedTime, err := time.Parse(layout, pubTime)
+	if err != nil {
+		fmt.Printf("Error parsing date. Format: %s\n", pubTime)
+		return time.Time{}, err
+	}
+
+	return parsedTime, nil
 }

@@ -48,6 +48,10 @@ func main() {
 	cmds.register("follow", middlewareLoggedIn(handlerFollow))
 	cmds.register("following", middlewareLoggedIn(handlerFollowing))
 	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollow))
+	cmds.register("browse", middlewareLoggedIn(handlerBrowse))
+	cmds.register("resetposts", handlerResetPosts)
+	cmds.register("archive", handlerArchiveFeeds)
+	cmds.register("restore", handlerRestoreFeeds)
 
 	if len(os.Args) < 2 {
 		fmt.Println("Error: command requires more than one argument.")

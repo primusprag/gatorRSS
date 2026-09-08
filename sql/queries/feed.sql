@@ -10,6 +10,18 @@ VALUES (
 )
 RETURNING *;
 
+-- name: ArchiveFeed :one
+INSERT INTO feedsArchive (id, created_at, updated_at, name, url, user_id)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6
+)
+RETURNING *;
+
 -- name: ListFeeds :many
 SELECT *
 FROM feeds;
@@ -39,6 +51,21 @@ SELECT *
 FROM feeds
 WHERE url = $1;
 
+-- name: GetFeedByName :one
+SELECT *
+FROM feeds
+WHERE name = $1;
+
+-- name: GetArchivedFeedByName :one
+SELECT *
+FROM feedsArchive
+WHERE name = $1;
+
+-- name: DeleteFeed :one
+DELETE FROM feeds
+WHERE id = $1
+RETURNING *;
+
 -- name: GetFeedFollowsForUser :many
 SELECT 
     feed_follows.*, 
@@ -49,9 +76,16 @@ JOIN users ON users.id = user_id
 JOIN feeds ON feeds.id = feed_id
 WHERE feed_follows.user_id = $1;
 
+
 -- name: DeleteFeedFollow :exec
 DELETE FROM feed_follows
 WHERE user_id = $1 AND feed_id = $2;
+
+
+-- name: DeleteArchivedFeed :one
+DELETE FROM feedsArchive
+WHERE id = $1
+RETURNING *;
 
 -- name: MarkFeedFetched :exec
 UPDATE feeds
