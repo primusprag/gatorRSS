@@ -10,7 +10,7 @@
 #### To install:
 
 ```
-go install gatorRSS github.com/d4l4-33/gatorRSS
+go install gatorRSS github.com/primusprag/gatorRSS
 ```
 
 
